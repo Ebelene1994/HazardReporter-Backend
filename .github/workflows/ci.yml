@@ -13,7 +13,7 @@ on:
 
 jobs:
   backend:
-    name: Backend — Install / Lint / Test
+    name: Backend CI
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -47,7 +47,7 @@ jobs:
         run: npm run build
 
   frontend:
-    name: Frontend — Install / Lint / Test
+    name: Frontend CI
     runs-on: ubuntu-latest
     strategy:
       matrix:
