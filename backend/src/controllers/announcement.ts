@@ -23,7 +23,7 @@ export const createAnnouncement = async (req: Request, res: Response, next: Next
             category,
             status,
             pinToFeed,
-            location: location ? JSON.parse(location) : undefined,
+            location,
             attachments,
             createdBy: userId
         });

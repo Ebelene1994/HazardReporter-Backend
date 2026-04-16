@@ -187,6 +187,8 @@ router.patch(
  *                 type: string
  *               category:
  *                 type: string
+ *               location:
+ *                 type: string
  *               attachments:
  *                 type: array
  *                 items:
@@ -264,6 +266,8 @@ router.get("/admin/announcements/:id", getAnnouncementById);
  *               title:
  *                 type: string
  *               detail:
+ *                 type: string
+ *               location:
  *                 type: string
  *     responses:
  *       200:
