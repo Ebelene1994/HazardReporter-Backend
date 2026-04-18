@@ -9,6 +9,8 @@ export interface IUser extends Document {
   confirmPassword: string;
   role: "admin" | "user";
   avatar?: string;
+  isActive: boolean;
+  isVerified: boolean;
   reports: Types.ObjectId[];
   createResetPasswordToken?: string;
   passwordChangedAt?: Date;
