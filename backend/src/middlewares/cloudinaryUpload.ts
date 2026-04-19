@@ -38,7 +38,7 @@ export const uploadHazardFiles = multer({
     limits: {
         fileSize: 5 * 1024 * 1024
     }
-});
+}) as any;
 
 export const uploadAnnouncementFiles = multer({
     storage: announcementStorage,
@@ -59,6 +59,6 @@ export const uploadAnnouncementFiles = multer({
     limits: {
         fileSize: 10 * 1024 * 1024
     }
-});
+}) as any;
 
 export default uploadHazardFiles;
