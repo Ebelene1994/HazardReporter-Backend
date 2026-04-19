@@ -11,6 +11,7 @@ import { swaggerSpec } from "./config/swagger";
 import adminRoutes from "./router/admin";
 import hazardReport from "./router/hazardreport";
 import hazardRoutes from "./router/hazardtypes";
+import healthRoutes from "./router/health";
 import resetPasswordRoutes from "./router/resetpassword";
 import userRoutes from "./router/user";
 dotenv.config();
@@ -76,7 +77,7 @@ app.get("/", (req, res) => {
 });
 
 // Use Route
-
+app.use("/api", healthRoutes);
 app.use("/api", userRoutes);
 app.use("/api", adminRoutes);
 app.use("/hazard", hazardRoutes);

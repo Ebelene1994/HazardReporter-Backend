@@ -21,6 +21,12 @@ const options = {
         description: 'Production server',
       },
     ],
+    tags: [
+      {
+        name: 'Health',
+        description: 'API and database health check endpoints',
+      },
+    ],
     components: {
       securitySchemes: {
         bearerAuth: {
