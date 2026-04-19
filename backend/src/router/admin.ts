@@ -28,9 +28,15 @@ const router = express.Router();
  *           schema:
  *             type: object
  *             properties:
+ *               userName:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
  *               email:
  *                 type: string
  *               password:
+ *                 type: string
+ *               confirmPassword:
  *                 type: string
  *     responses:
  *       201:
@@ -53,7 +59,7 @@ router.post("/admin/signup", upload.none(), adminController.adminSignup);
  *           schema:
  *             type: object
  *             properties:
- *               email:
+ *               userName:
  *                 type: string
  *               password:
  *                 type: string
