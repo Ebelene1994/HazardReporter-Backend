@@ -7,7 +7,7 @@ import mongoose from "mongoose";
 import swaggerUi from "swagger-ui-express";
 import config from "./config/config";
 import logging from "./config/logging";
-import { swaggerSpec, getSwaggerSpec } from "./config/swagger";
+import { getSwaggerSpec } from "./config/swagger";
 import adminRoutes from "./router/admin";
 import hazardReport from "./router/hazardreport";
 import hazardRoutes from "./router/hazardtypes";
@@ -75,7 +75,15 @@ app.get("/api-docs.json", (req: Request, res: Response) => {
   res.send(getSwaggerSpec(req));
 });
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec, { swaggerOptions: { url: "/api-docs.json" } }));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(undefined, {
+  swaggerOptions: {
+    url: "/api-docs.json",
+    validatorUrl: null,
+    persistAuthorization: true
+  },
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: "HazardWatch API"
+}));
 
 // Root route - redirect to Swagger docs
 app.get("/", (req, res) => {
