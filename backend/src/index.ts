@@ -70,7 +70,8 @@ app.use(cors({
 }));
 
 // Compression middleware - reduces response payload size
-app.use(compression());
+// app.use(compression());
+app.use((compression as any)());
 
 //Parse the body of the request
 app.use(bodyParser.urlencoded({ extended: true }));
