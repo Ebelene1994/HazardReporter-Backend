@@ -1,5 +1,5 @@
 import bodyParser from "body-parser";
-import * as compression from "compression";
+import compression = require("compression");
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { NextFunction, Request, Response } from "express";
