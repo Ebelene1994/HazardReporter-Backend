@@ -69,14 +69,34 @@ const getAllHazardReports = async (
   next: NextFunction,
 ) => {
   try {
-    const hazardReports = await HazardReport.find().populate(
-      "user",
-      "firstName lastName userName",
-    );
+    // Pagination parameters - defaults to page 1, 20 items per page
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit as string) || 20));
+    const skip = (page - 1) * limit;
+
+    // Execute count and find in parallel for better performance
+    const [totalCount, hazardReports] = await Promise.all([
+      HazardReport.countDocuments(),
+      HazardReport.find()
+        .populate("user", "firstName lastName userName")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+    ]);
+
     return res.status(200).json({
-      message: "All Hazard Reports retrieved successfully",
+      message: "Hazard Reports retrieved successfully",
       hazardReports,
       count: hazardReports.length,
+      totalCount,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        pageSize: limit,
+        hasNextPage: skip + hazardReports.length < totalCount,
+        hasPrevPage: page > 1,
+      },
     });
   } catch (error) {
     console.error("Error fetching hazard reports:", error);
@@ -250,92 +270,77 @@ const getHazardReportStats = async (
   next: NextFunction,
 ) => {
   try {
-    // Total number of reports
-    const totalReports = await HazardReport.countDocuments();
+    // Run all queries in parallel for better performance
+    const [
+      totalReports,
+      reportsByHazardType,
+      reportsByStatus,
+      reportsByCity,
+      reportsByCountry,
+      reportsByUser,
+      reportsByMonth,
+    ] = await Promise.all([
+      // Total number of reports
+      HazardReport.countDocuments(),
 
-    // Reports grouped by hazard type
-    const reportsByHazardType = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: "$hazardtype",
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { count: -1 } }, // highest first
-    ]);
+      // Reports grouped by hazard type
+      HazardReport.aggregate([
+        { $group: { _id: "$hazardtype", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
 
-    // Reports grouped by status
-    const reportsByStatus = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: "$status",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+      // Reports grouped by status
+      HazardReport.aggregate([
+        { $group: { _id: "$status", count: { $sum: 1 } } },
+      ]),
 
-    // Reports grouped by city
-    const reportsByCity = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: "$city",
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { count: -1 } }, // highest first
-    ]);
+      // Reports grouped by city
+      HazardReport.aggregate([
+        { $group: { _id: "$city", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
 
-    // Reports grouped by country
-    const reportsByCountry = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: "$country",
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { count: -1 } },
-    ]);
+      // Reports grouped by country
+      HazardReport.aggregate([
+        { $group: { _id: "$country", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
 
-    // Reports per user (top reporters)
-    const reportsByUser = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: "$user",
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { count: -1 } },
-      {
-        $lookup: {
-          from: "users",
-          localField: "_id",
-          foreignField: "_id",
-          as: "userDetails",
-        },
-      },
-      {
-        $project: {
-          count: 1,
-          "userDetails.firstName": 1,
-          "userDetails.lastName": 1,
-          "userDetails.userName": 1,
-          "userDetails.email": 1,
-        },
-      },
-    ]);
-
-    // Reports created per month (for charts/graphs)
-    const reportsByMonth = await HazardReport.aggregate([
-      {
-        $group: {
-          _id: {
-            year: { $year: "$createdAt" },
-            month: { $month: "$createdAt" },
+      // Reports per user (top reporters) - limit to top 20
+      HazardReport.aggregate([
+        { $group: { _id: "$user", count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 20 },
+        {
+          $lookup: {
+            from: "users",
+            localField: "_id",
+            foreignField: "_id",
+            as: "userDetails",
           },
-          count: { $sum: 1 },
         },
-      },
-      { $sort: { "_id.year": -1, "_id.month": -1 } },
+        {
+          $project: {
+            count: 1,
+            "userDetails.firstName": 1,
+            "userDetails.lastName": 1,
+            "userDetails.userName": 1,
+            "userDetails.email": 1,
+          },
+        },
+      ]),
+
+      // Reports created per month (for charts/graphs) - limit to last 12 months
+      HazardReport.aggregate([
+        {
+          $group: {
+            _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+            count: { $sum: 1 },
+          },
+        },
+        { $sort: { "_id.year": -1, "_id.month": -1 } },
+        { $limit: 12 },
+      ]),
     ]);
 
     return res.status(200).json({

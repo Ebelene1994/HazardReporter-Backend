@@ -2,6 +2,7 @@ import express from "express";
 import controller from "../controllers/user";
 import { checkAuth, hasPermission } from "../middlewares/auth";
 import upload from "../middlewares/upload";
+import { uploadAvatar } from "../middlewares/cloudinaryUpload";
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ const router = express.Router();
  *       400:
  *         description: Invalid input or user already exists
  */
-router.post("/users/register", upload.single('avatar'), controller.register);
+router.post("/users/register", uploadAvatar.single('avatar'), controller.register);
 
 /**
  * @swagger
@@ -101,7 +102,7 @@ router.patch(
     "/users/",
     checkAuth,
     hasPermission("create_user"),
-    upload.single('avatar'),
+    uploadAvatar.single('avatar'),
     controller.createUser,
 );
 
@@ -148,7 +149,7 @@ router.patch(
     "/users/:id",
     checkAuth,
     hasPermission("update_user"),
-    upload.single('avatar'),
+    uploadAvatar.single('avatar'),
     controller.editUser,
 );
 

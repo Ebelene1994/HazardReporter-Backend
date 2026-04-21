@@ -12,6 +12,8 @@ import {
 } from "../controllers/announcement";
 import { uploadAnnouncementFiles } from "../middlewares/cloudinaryUpload";
 import upload from "../middlewares/upload";
+import { uploadAvatar } from "../middlewares/cloudinaryUpload";
+import User from "../models/user";
 
 const router = express.Router();
 
@@ -86,6 +88,104 @@ router.post("/admin/signin", upload.none(), adminController.adminSignin);
  *         description: Unauthorized
  */
 router.post("/admin/logout", checkAuth, adminController.adminLogout);
+
+/**
+ * @swagger
+ * /admin/profile:
+ *   get:
+ *     summary: Get current admin profile
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Admin profile retrieved successfully
+ *       401:
+ *         description: Unauthorized
+ */
+router.get("/admin/profile", extractJWT, checkAdmin, (req: any, res: any) => {
+    // req.user is set by extractJWT middleware
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+    return res.status(200).json({
+        id: req.user._id,
+        userName: req.user.userName,
+        email: req.user.email,
+        phoneNumber: req.user.phoneNumber,
+        role: req.user.role,
+        avatar: req.user.avatar,
+    });
+});
+
+/**
+ * @swagger
+ * /admin/profile:
+ *   patch:
+ *     summary: Update admin profile
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               userName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phoneNumber:
+ *                 type: string
+ *               avatar:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Admin profile updated successfully
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Forbidden - not admin
+ */
+router.patch("/admin/profile", extractJWT, checkAdmin, uploadAvatar.single('avatar'), async (req: any, res: any) => {
+    try {
+        const { userName, email, phoneNumber } = req.body;
+        const userId = req.user._id;
+
+        const updateData: any = {};
+        if (userName) updateData.userName = userName;
+        if (email) updateData.email = email;
+        if (phoneNumber) updateData.phoneNumber = phoneNumber;
+        if (req.file) updateData.avatar = req.file.path;
+
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true }).select('-password');
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json({
+            message: "Profile updated successfully",
+            user: {
+                id: user._id,
+                userName: user.userName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                role: user.role,
+                avatar: user.avatar,
+            },
+        });
+    } catch (error) {
+        console.error("Error updating admin profile:", error);
+        return res.status(500).json({
+            message: "Error updating profile",
+            error: error instanceof Error ? error.message : String(error),
+        });
+    }
+});
 
 /**
  * @swagger
