@@ -136,7 +136,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     const hashedPassword = bcryptjs.hashSync(value.password, 10);
     const avatar = req.file ? (req.file as any).path : "";
     // Create user
-    await User.create({
+    const user = await User.create({
       ...value,
       password: hashedPassword,
       avatar,
@@ -148,7 +148,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     //     text: `Dear user,\n\nA user account has been created for you with the following credentials.\n\nUsername: ${value.username}\nEmail: ${value.email}\nPassword: ${value.password}\nRole: ${value.role}\n\nThank you!`,
     // });
     // Return response
-    res.status(201).json("User Created");
+    res.status(201).json({ user });
   } catch (error) {
     next(error);
   }
