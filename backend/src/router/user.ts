@@ -208,10 +208,10 @@ router.get(
  *         description: Forbidden - insufficient permissions
  */
 router.delete(
-    "/users/:id",
-    checkAuth,
-    hasPermission("delete_user"),
-    controller.deleteUser,
+  "/users/:id",
+  checkAuth,
+  hasPermission("delete_user"),
+  controller.deleteUser,
 );
 
 /**

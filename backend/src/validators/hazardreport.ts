@@ -10,3 +10,4 @@ export const hazardreportValidator = Joi.object({
   country: Joi.string().required(),
   user: Joi.string().optional(),
 });
+

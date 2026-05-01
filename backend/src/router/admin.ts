@@ -318,38 +318,13 @@ router.post(
   checkAdmin,
   uploadAnnouncementFiles.array("attachments", 5),
   createAnnouncement,
+  "/admin/announcements",
+  extractJWT,
+  checkAdmin,
+  uploadAnnouncementFiles.array("attachments", 5),
+  createAnnouncement,
 );
-
-/**
- * @swagger
- * /admin/announcements:
- *   get:
- *     summary: Get all announcements
- *     tags: [Admin]
- *     responses:
- *       200:
- *         description: List of announcements
- */
 router.get("/admin/announcements", getAllAnnouncements);
-
-/**
- * @swagger
- * /admin/announcements/{id}:
- *   get:
- *     summary: Get announcement by ID
- *     tags: [Admin]
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Announcement found
- *       404:
- *         description: Announcement not found
- */
 router.get("/admin/announcements/:id", getAnnouncementById);
 
 /**
@@ -398,54 +373,29 @@ router.patch(
   checkAdmin,
   uploadAnnouncementFiles.array("attachments", 5),
   updateAnnouncement,
+  "/admin/announcements/:id",
+  extractJWT,
+  checkAdmin,
+  uploadAnnouncementFiles.array("attachments", 5),
+  updateAnnouncement,
 );
-
-/**
- * @swagger
- * /admin/announcements/{id}:
- *   delete:
- *     summary: Delete announcement (admin only)
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Announcement deleted
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - not admin
- */
 router.delete(
+  "/admin/announcements/:id",
+  extractJWT,
+  checkAdmin,
+  deleteAnnouncement,
   "/admin/announcements/:id",
   extractJWT,
   checkAdmin,
   deleteAnnouncement,
 );
 
-/**
- * @swagger
- * /admin/users:
- *   get:
- *     summary: Get all users (admin only)
- *     tags: [Admin]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of all users
- *       401:
- *         description: Unauthorized
- *       403:
- *         description: Forbidden - insufficient permissions
- */
+// ─── User Routes (protected) ──────────────────────────────────────────────────
 router.get(
+  "/admin/users",
+  checkAuth,
+  hasPermission("read_users"),
+  adminController.getAllUsers,
   "/admin/users",
   checkAuth,
   hasPermission("read_users"),
@@ -453,3 +403,4 @@ router.get(
 );
 
 export default router;
+
